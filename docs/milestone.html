@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <style>
+        body {
+            padding: 100px;
+            width: 1000px;
+            margin: auto;
+            text-align: left;
+            font-weight: 300;
+            font-family: 'Open Sans', sans-serif;
+            color: #121212;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+        img {
+            width: 100%;
+        }
+        figcaption {
+            text-align: center;
+        }
+    </style>
+    <title>CS 184 Final Project Milestone Report</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+<p>
+<h1 align="middle">CS 184 Final Milestone Report</h1>
+<h1 align="middle">Face Morphing</h1>
+<h2 align="middle">Daiwei Liu, Provi Zhang</h2>
+
+<br><br>
+
+<h3>Summary of Progress</h3>
+<p>
+    In the past week we successfully implemented algorithm for Delaunay Triangulation, Image Interpolation, and Alpha Blending. Our executable now is capable of generating a blended image of morphing two images of faces, given that the two photos are shot in a controlled environment (lighting, pose, size).
+</p>
+<h3>Implementation Walkthrough</h3>
+<p>
+    With the help of <a href="http://dlib.net/">dlib</a>, we first implemented facial feature detection, which marks out dominant points that outlines one's face using machine learned data. To make it better, we manually added 15 points. Thereafter, we perform Delaunay Triangulation on these points to triangulate the two images. Note that for the convenience of later use, we first acquire the triangles of one image in the form of indices, then map them to acquire that of the other image, so each index will map to the corresponding triangles of two images. For each point, we perform linear interpolation between two images to generate control points. After we have the triangles and points, we calculate the affine transformation needed for one triangle to become the shape of its corresponding one to warp each of them. Finally, we perfrom alpha blending on each warped triangle to produce the result image.
+</p>
+<h3>Preliminary Results</h3>
+<table>
+    <tr>
+        <td>
+            <img src="img/bush.jpg"/>
+            <figcaption></figcaption>
+        </td>
+        <td>
+            <img src="img/bush_obama.jpg"/>
+            <figcaption></figcaption>
+        </td>
+        <td>
+            <img src="img/obama.jpg"/>
+            <figcaption></figcaption>
+        </td>
+    </tr>
+</table>
+<table>
+    <tr>
+        <td>
+            <img src="img/dzeko.png"/>
+            <figcaption>Dzeko</figcaption>
+        </td>
+        <td>
+            <img src="img/messi_dzeko.jpg"/>
+            <figcaption></figcaption>
+        </td>
+        <td>
+            <img src="img/messi.png"/>
+            <figcaption>Messi</figcaption>
+        </td>
+        <td>
+            <img src="img/messi_ribery.jpg"/>
+            <figcaption></figcaption>
+        </td>
+        <td>
+            <img src="img/ribery.png"/>
+            <figcaption>Ribery</figcaption>
+        </td>
+    </tr>
+</table>
+
+
+<h4>Reflection</h4>
+<p>We can see some transparent residue from each original image in the final result. That is a drawback of the alpha blending algorithm. To help reduce them in the future, we are still considering improvements or alternatives for the alpha blending algorithm.</p>
+<p>The machine learned library still can underperform on many images, and can only produce a few points. We calculated and added 15 more feature points to help triangulation. And there's still space for improvement. In the future, we can implement manual adding feature to let user add points by point and click.</p>
+
+<h4>Other</h4>
+<div><a href="https://docs.google.com/a/berkeley.edu/presentation/d/1S_jgbPGe2vCVXRkmPq5X0YIKIN7dnLbxZQZT_Rhy2eY/edit?usp=sharing">Presentation Slides</a></div>
+<div><a href="https://youtu.be/nvAjm55X1X0">Milestone Video</a></div>
+<div>For project idea and description please see <a href="proposal.html">project proposal</a>.</div>
+
+
+<br>
+
+
+</body>
+</html>

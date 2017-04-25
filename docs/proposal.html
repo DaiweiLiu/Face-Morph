@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <style>
+        body {
+            padding: 100px;
+            width: 1000px;
+            margin: auto;
+            text-align: left;
+            font-weight: 300;
+            font-family: 'Open Sans', sans-serif;
+            color: #121212;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+    </style>
+    <title>CS 184 Final Project Proposal</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+<body>
+<h1 align="middle">CS 184 Final Project Proposal</h1>
+<h1 align="middle">Face Morphing</h1>
+<h2 align="middle">Daiwei Liu, Provi Zhang</h2>
+
+<br><br>
+
+<h2>Summary</h2>
+<p>
+    We want to map person A’s face onto person B’s face seamlessly in 2D and in 3D.
+</p>
+<br>
+
+<h2>Problem Description</h2>
+<p>
+    The problem is not technically important. We do it primarily for entertainment purpose.
+</p>
+<li>Challenge 1: How to detect face on photo</li>
+<li>Challenge 2: How to merge two face together naturally, despite different shapes of faces and poses.</li>
+<li>Challenge 3: How to construct a 3D head model from photo(s).</li>
+<br>
+
+<h2>Basic idea of approaching the problem</h2>
+<h3>Baseline - 2D case:</h3>
+<p>
+    Find an open source face detection API to detect faces and extract a set of feature points on the faces (eye, nose,
+    lips, etc.). The points on the two faces should have an one-to-one mapping relationship. If the API does not
+    generate enough points, consider manually adding feature points on GUI. Using the feature points, construct a
+    triangle mesh for each of the faces, and pair corresponding individual triangle mashes. Then merge one of the mesh
+    onto the other by alpha blending each pixel in each triangle mesh using barycentric coordinates.
+</p>
+<h3>Aspiration - 3D case:</h3>
+<li>
+    <strong>3D Head Modeling</strong>
+    <p>
+        Get an unisex baseline human head mesh, and select a few (around 50) key feature points on the mesh to be
+        control points. Get the front-view photo and side-view photo of a head, and extract the corresponding feature
+        points on these pictures and then distort the baseline mesh (using the key feature points) to fit them. Texture
+        map the front-view photo and side-view photo onto the distorted mesh to get a 3D model of the head. Apply the
+        same logic on the second head.
+    </p>
+</li>
+<li>
+    <strong>3D Head Morphing</strong>
+    <p>
+        Blend the two head meshes together. The texture of the morphed head mesh is calculated by alpha belnding each
+        pair of corresponding triangles from the two source head meshes, and each vertex of the morphed head mesh is
+        calculated as the average of each pair of corresponding vertices of the two source head meshes.
+    </p>
+</li>
+<br>
+
+<h2>Goal & Deliverables</h2>
+<img src="img/example.jpg" align="middle"/>
+<figcaption align="middle">The quality that we are aiming for in this project</figcaption>
+<br>
+<li>
+    <strong>Baseline Deliverables</strong>
+    <p>
+        1. Given two photos A and B that are shot in a controlled environment (lighting, pose, size), generate a blended
+        image of morphing face of A with the face of B.
+    </p>
+    <p>
+        2. The result should look real and natural, which means viewers should not be able to easily tell it is two
+        faces merged together.
+    </p>
+</li>
+<li>
+    <strong>Extra Deliverables if things goes well</strong>
+    <p>
+        1. Given a set of photos taken in different angles that are shot in a controlled environment, generate a 3D head
+        mesh.
+    </p>
+    <p>
+        2. Given two head meshes with the same topology, generate a blended mesh of morphing head mesh of A with the
+        head mesh of B.
+    </p>
+</li>
+<br>
+
+<h2>Schedule</h2>
+<li>
+    <strong>Week 1:</strong>
+    <p>
+        Layout the ground work and get the face detection API working. Get reliable feature points from faces. Construct
+        triangle mesh from points. Blend the texture on the two meshes using barycentric coordinates. (Baseline goal
+        almost done)
+    </p>
+</li>
+<li>
+    <strong>Week 2:</strong>
+    <p>
+        Optimize for realistic result (Baseline goal done). Try to do the 3D head modeling part of extra deliverable if
+        possible.
+    </p>
+</li>
+<li>
+    <strong>Week 3:</strong>
+    <p>
+        Try to do the 3D head morphing part of extra deliverables if possible.
+    </p>
+</li>
+<li>
+    <strong>Week 4:</strong>
+    <p>
+        Buffer week
+    </p>
+</li>
+<br>
+
+<h2>Resources</h2>
+<p>OpenCV & OpenGL</p>
+<p>Inspiration of 2D face morphing:
+    <a href="http://www.learnopencv.com/face-morph-using-opencv-cpp-python/" target="_blank">
+        Face Morph Using OpenCV
+    </a>
+</p>
+<p>Inspiration of 3D head modeling:
+    <a href="https://www.youtube.com/watch?v=geQCzan6Usc" target="_blank">
+        Convert Picture into 3D Model
+    </a>
+</p>
+
+</body>
+</html>
