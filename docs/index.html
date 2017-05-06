@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
 <head>
     <style>
         body {
@@ -11,24 +12,239 @@
             font-family: 'Open Sans', sans-serif;
             color: #121212;
         }
-
-        h1, h2, h3, h4 {
+        
+        h1,
+        h2,
+        h3,
+        h4 {
             font-family: 'Source Sans Pro', sans-serif;
         }
     </style>
-    <title>CS 184 Final Project Index</title>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>CS 184 Final Report</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
 </head>
 
+
 <body>
-<h1 align="middle">CS 184 Final Project Index</h1>
-<h1 align="middle">Face Morphing</h1>
-<h2 align="middle">Daiwei Liu, Provi Zhang</h2>
 
-<a href="proposal.html"><h3>Project Proposal</h3></a>
-<a href="milestone.html"><h3>Project Milestone Report</h3></a>
+    <h1 align="middle">CS 184 Spring 2017 Final Project Report</h1>
+    <h1 align="middle">Face Morph</h1>
+    <h2 align="middle">Daiwei Liu, CS184-adc</h2>
+    <h2 align="middle">Provi Zhang, CS184-aci</h2>
 
+    <br>
+    <br>
 
+    <h1 align="middle">Abstract</h1>
+    <p>
+        In this project we created a fully automatic program that produces photorealistic blends of distinct faces from profile pictures. We used various techniques including Delaunay triangulation, linear interpolation, affine transformation, and Poisson blending to create convincing results. We also leveraged external libraries such as OpenCV, Dlib, and Eigen in our process of manipulating the images.
+    </p>
+    <br>
+    <br>
+
+    <h1 align="middle">Technical Approach</h1>
+    <h2>Image Processing Pipeline</h2>
+    <center>
+        <img src="images/pipeline.png" align="center" width="75%" />
+    </center>
+
+    <h2 aling="middle">1. Facial Landmark Detection</h2>
+    <p>
+        We used an external C++ toolkit, Dlib, to identify the face in the images and to extract 68 facial landmarks. Additionally, we also manually added 8 control points on the edges of the images in order to make the triangulation in the next stage cover the entire image.
+    </p>
+    <div align="middle">
+        <table width="100%">
+            <tr>
+                <td>
+                    <img src="images/landmarks-bush.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Control points of destination image</figcaption>
+                </td>
+                <td>
+                    <img src="images/landmarks-obama.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Control points of source image</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 aling="middle">2. Delaunay Triangulation</h2>
+    <p>
+        We used Delaunay triangulation algorithm on control points of the destination image to create a 2D mesh. We chose to use Delaunay triangulation because it maximizes the minimum angle of all the angles in the triangulation, so that our mesh would have as few sliver triangles as possible. Both of us spent time understanding the algorithm and designed an implementation of incrementally inserting control points into the mesh. Upon each insertion we check if the Delaunay property (no point is inside the circumcircle of any triangle) is violated by any point in the resulting mesh, and if so we flip an edge connecting the point until the property is satisfied. However, in the interest of time, we ended up using OpenCV's implementation of Delaunay triangulation.
+    </p>
+    <p>
+        We then constructed a 2D mesh on the source image using the same topology as the mesh on the destination image so that the triangles on the two meshes form a one-to-one mapping relationship. Since Delaunay triangulation in no way guarantees to produce the same topology on human faces, we had to store the triangle mesh as triplets of indecies of the control points vector to create a mesh with the same topology on the other image.
+    </p>
+    <div align="middle">
+        <table width="100%">
+            <tr>
+                <td>
+                    <img src="images/delaunay-bush.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Delaunay triangulation of destination image</figcaption>
+                </td>
+                <td>
+                    <img src="images/delaunay-obama.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Delaunay triangulation of source image</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 aling="middle">3. Linear Interpolation</h2>
+    <p>
+        We computed the resulting composite image's mesh as the linear interpolation of the two control meshes we created in step 2. By varing the interpolation parameter "alpha", we could control the likeliness of the composite face relative to the faces in the source image and the destination image.
+    </p>
+
+    <h2 aling="middle">4. Pre-blend</h2>
+    <p>
+        In this step, we prepared the three ingredients for the final Poisson blending: an image with the composite face, a background image to blend the face into, and a blending mask that defines the edge where blending would happen.
+    </p>
+    <div align="middle">
+        <table width="100%">
+            <tr>
+                <td>
+                    <img src="images/alphaBlend.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Linear blend of two warped images</figcaption>
+                </td>
+                <td style="padding-left: 25px">
+                    <p>
+                        First, we calculated the affine transformation from each triangle in the two control meshes to its corresponding triangle in the composite mesh. We then warped the source image and the destination image using the affine transformation, and blended them together by linearly interpolating the color of each pair of corresponding pixels. The interpolation parameter is the same alpha we used in step 3. This gives us the image of the composite face. The face is well-aligned since the large number of control points created a fine mesh that allowed us to align all the key landmarks.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <img src="images/warpedDst.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Warped destination image</figcaption>
+                </td>
+                <td style="padding-left: 25px">
+                    <p>
+                        Second, we warped destination image so that its head would fit the composite face.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <img src="images/mask.jpg" align="middle" height="600px" />
+                    <figcaption align="middle">Mask that defines the blending edge</figcaption>
+                </td>
+                <td style="padding-left: 25px">
+                    <p>
+                        Third, we build a face mask by feeding all the control points on the edge of the composite image's face into OpenCV's fillConvexPoly function. Note that we moved each control point's coordinates slightly (~2px) towards the center of the face so that the resulting face mask would be silightly smaller than the face on the warped destination image. This is to prevent any unwanted color bleeding in the final Poisson blending step.
+                    </p>
+                    <p>
+                        * Color bleeding is the phenomenon where the color on the blending edge diffuses into the blending area. This is a normal behavior of the Poisson blending algorithm. However, this can also leads to unwanted result if the blending edge is right on the edge between face and background, in which case the color of background (wall, cloth, etc.) can bleed into the blended face, creating a really disturbing look.
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 aling="middle">5. Poisson Blending</h2>
+    <p>
+        Finally, we use Poisson blending algorithm to seamlessly stitch the linearly blended face onto the warped destination image. We chose Poisson blending because it hides the blending edge extreamly well.
+    </p>
+    <p>
+        Due to the lack of API support, both of us spend a lot of time reading the original paper that invented Poisson blending algorithm, and studied many blog posts as well as available lectures online to understand the algorithm well enough to implement it. Poisson blending blends images in the gradient domain rather than in the pixel domain. It enforces an edge constraint that the pixel value on the blending edge must be the same as the background image, and adjusts the pxiel values of the image being copied to minimize the change in the gradient domain compared to the original image. This allows Poisson blending to change pixel values gradually from the blending edge towards the center of the image, producing a seamless blend while maximumlly preserving the characteristics of the original image being copied. The solution to this optimization problem is a Poisson equation, hence the name "Poisson blending".
+    </p>
+    <p>
+        Solving the Poisson equation in the disceret case (e.g. images represented by discrete pixels) involves solving a linear system of equation Ax = b, where A is a huge sparse matrix and b is the target gradient vector mostly consisting of the original gradient values of the pixels in the blending area. We convolved a Laplacian kernel around the image being copied to get the values in vector b (modified entries on the edge to enforce the edge constraint). However, since the face being copied measures about 500px by 500px and therefore contains about 250,000 pixels, our matrix A would be 250,000 by 250,000 which certainly would not fit in RAM, so we had to store A as a sparse matrix. Even though OpenCV provides a sparse matrix struct, it provides no support for solving linear equations involving sparse matrix, so we ended up using a C++ template library for linear algebra called Eigen. We constructed matrix A and vector b in Eigen and used its Conjugate Gradient solver to solve the Poisson equation.
+    </p>
+    <div align="middle">
+        <img src="images/poissonBlend.jpg" align="middle" height="600px" />
+        <figcaption align="middle">Result of Poisson blending</figcaption>
+    </div>
+
+    <br>
+    <br>
+    <h1 align="middle">Result</h1>
+    <div align="middle">
+        <table width="100%">
+            <tr>
+                <td>
+                    <img src="images/bush-obama.gif" align="middle" width="490px" />
+                    <figcaption align="middle">Continuous blend of Obama's face onto Bush</figcaption>
+                </td>
+                <td align="right">
+                    <img src="images/obama-trump.gif" align="middle" width="490px" />
+                    <figcaption align="middle">Continuous blend of Trump's face onto Obama</figcaption>
+                </td>
+            </tr>
+        </table>
+        <p>
+            * Note on a few frames there is some color bleeding of Obama's black eyebrow into Trump's face.
+        </p>
+        <table width="100%">
+            <tr>
+                <td align="middle">
+                    <img src="images/ren.jpg" align="middle" width="250px" />
+                    <figcaption align="middle">Prof. Ng</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/ren-james.gif" align="middle" width="250px" />
+                    <figcaption align="middle">Prof. O'Brien onto Prof. Ng </figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/ren-james95.jpg" align="middle" width="250px" />
+                    <figcaption align="middle">95% O'Brien + 5% Ng</figcaption>
+                </td>
+            </tr>
+            <tr>
+                <td align="middle">
+                    <img src="images/james.jpg" align="middle" width="250px" />
+                    <figcaption align="middle">Prof. O'Brien</figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/james-ren.gif" align="middle" width="250px" />
+                    <figcaption align="middle">Prof. Ng onto Prof. O'Brien </figcaption>
+                </td>
+                <td align="middle">
+                    <img src="images/james-ren95.jpg" align="middle" width="250px" />
+                    <figcaption align="middle">95% Ng + 5% O'Brien</figcaption>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <br>
+    <br>
+    <h1 align="middle">References</h1>
+    <li><a href="http://www.learnopencv.com/face-morph-using-opencv-cpp-python/">Face Morph Using OpenCV</a></li>
+    <li><a href="http://dlib.net/face_landmark_detection_ex.cpp.html">Dlib Facial Landmark Detection</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay Triangulation</a></li>
+    <li><a href="https://www.cs.jhu.edu/~misha/Fall07/Papers/Perez03.pdf">Original Poisson Blending Paper</a>
+    </li>
+    <li><a href="http://eric-yuan.me/poisson-blending/">Eric's Explanation of Poisson Blending</a></li>
+    <li><a href="http://eric-yuan.me/poisson-blending/">Chris' Explanation of Poisson Blending</a></li>
+
+    <br>
+    <br>
+    <h1 align="middle">Team Work</h1>
+    <p>We pair-programmed most of the code. Daiwei finished the rest because Provi has a Windows.</p>
+    <p>Daiwei came up with the original idea of doing face morph and found all the relevant online resources to guide implementation. Daiwei also came up with the idea of using Poisson image editing to solve the edge blending problem. Daiwei wrote the project proposal and this final report.</p>
+    <p>Provi was responsible for managing the Github repo, wrote the milestone report, and created final presentation slides. Provi came up with the idea of crop out the face and stitch it to one of the source image to avoid the blurry misalignment problem. </p>
+
+    <br>
+    <br>
+    <h1 align="middle">Miscellaneous</h1>
+    <p>We spend a considerable amount of time exploring the possibility of doing real-time face swap/replacement on webcam. However, after we found that it is virtually impossible for us to make Poisson blending work under 100ms on 720P webcam, we abandoned the idea. Here are two screen shots of this half-way-killed work.</p>
+    <div align="middle">
+        <table width="100%">
+            <tr>
+                <td>
+                    <img src="images/webcam1.png" align="middle" width="490px" />
+                </td>
+                <td align="right">
+                    <img src="images/webcam2.png" align="middle" width="490px" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <h1>Additional Information</h1>
+    <p>
+        <a href="proposal.html"><h3>Project Proposal</h3></a>
+        <a href="milestone.html"><h3>Project Milestone Report</h3></a>
+    </p>
 </body>
+
 </html>
